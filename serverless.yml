@@ -1,0 +1,53 @@
+service: user-service #  service name
+
+provider:
+  name: aws
+  runtime: go1.x # The Go runtime version
+  region: us-east-1 # AWS region 
+  memorySize: 256 # Memory size for Lambda in MB
+  timeout: 10 # Maximum execution time in seconds
+
+functions:
+  createUser:
+    handler: main
+    events:
+      - http:
+          path: users
+          method: post
+
+  getUser:
+    handler: main
+    events:
+      - http:
+          path: users/{UserID}
+          method: get
+
+  updateUser:
+    handler: main
+    events:
+      - http:
+          path: users/{UserID}
+          method: put
+
+  deleteUser:
+    handler: main
+    events:
+      - http:
+          path: users/{UserID}
+          method: delete
+
+resources:
+  Resources:
+    Users:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: Users #  DynamoDB table name
+        AttributeDefinitions:
+          - AttributeName: UserID
+            AttributeType: S
+        KeySchema:
+          - AttributeName: UserID
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5 # Adjust this based on your expected read/write capacity needs
