@@ -1,6 +1,3 @@
-# user-microservice
-Golang implementation of User microservices
-
 # User Microservice
 
 This is a CRUD (Create, Read, Update, Delete) microservice for managing user records, deployed on AWS Lambda and accessible via AWS API Gateway. The service is developed in GoLang and utilizes AWS DynamoDB as the data repository.
