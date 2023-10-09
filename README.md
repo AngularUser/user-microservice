@@ -62,6 +62,7 @@ This microservice includes unit tests to ensure its functionality. It uses a moc
     go test ./...
 
 # Integration Testing
+Note: before testing, make sure to create necessary IAM policy for giving access to this User resource to DynamoDB 'PutItem', 'UpdateItem', 'GetItem', 'DeleteItem'. 
 1. Access the AWS API Gateway Console:
 
     1. Open your web browser and go to the [AWS Management Console](https://us-east-1.console.aws.amazon.com).
@@ -83,10 +84,4 @@ This microservice includes unit tests to ensure its functionality. It uses a moc
     5. Click the "Test" button to send the request to your User Microservice.
     6. You will receive the response from your User Microservice, including the HTTP status code and response body, if applicable.
 
-Below are the example requests for the User Microservice POST endpoint
-
-{
-    "Name": "John Doe",
-    "Email" : "john.doe@gmail.com",
-    "DOB": "1982-12-12"
-}
+We can use the postman collection under /tests/Users.CRUD.postman_collection.json for integration testing. Make sure the adjust the url accordingly.
