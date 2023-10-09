@@ -3,15 +3,10 @@ package service
 import (
 	"context"
 	"errors"
-	// "fmt"
-	// "encoding/json"
 	"github.com/aws/aws-sdk-go/aws"
-	// "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
-	// "github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/vineela-devarashetty/user-microservice/model"
-	// "log"
 )
 
 var tableName = "Users" // DynamoDB table name
@@ -57,16 +52,10 @@ func GetUser(ctx context.Context, userID string, dynamoDB DynamoDBAPI) (*model.U
 	if result.Item == nil {
 		return nil, errors.New("User not found")
 	}
-	// log.Println("result item is :", result.Item)
-
-	// var userString string
 	var user model.User
-	// attributevalue.Unmarshal(result.Item, &userString)
-
-	// json.Unmarshal([]byte(userString), &user)
 
 	err = unmarshalDynamoDBItem(result.Item, &user)
-	// log.Println("user is :", user)
+
 	if err != nil {
 		return nil, err
 	}
@@ -76,21 +65,30 @@ func GetUser(ctx context.Context, userID string, dynamoDB DynamoDBAPI) (*model.U
 
 // Update user details by UserID
 func UpdateUser(ctx context.Context, userID string, updatedUser *model.User, dynamoDB DynamoDBAPI) error {
-	// Validate user data here if needed
 
-	// Update user record in DynamoDB
+	// Define expression attribute names
+	expressionAttributeNames := map[string]*string{
+		"#name": aws.String("Name"), // Using "#name" as a placeholder for the reserved keyword "Name"
+	}
+
+	// Define the update expression with the placeholder for the attribute name
+	updateExpression := "SET #name = :name, Email = :email, DOB = :dob"
+
+	// Define expression attribute values
+	expressionAttributeValues := map[string]*dynamodb.AttributeValue{
+		":name":  {S: aws.String(updatedUser.Name)},
+		":email": {S: aws.String(updatedUser.Email)},
+		":dob":   {S: aws.String(updatedUser.DOB)},
+		// Add other fields as needed
+	}
+
+	// Create an update item input with expression attributes
 	updateItemInput := &dynamodb.UpdateItemInput{
-		TableName: aws.String(tableName),
-		Key: map[string]*dynamodb.AttributeValue{
-			"UserID": {S: aws.String(userID)},
-		},
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
-			":Name":  {S: aws.String(updatedUser.Name)},
-			":Email": {S: aws.String(updatedUser.Email)},
-			":DOB":   {S: aws.String(updatedUser.DOB)},
-			// Add other fields as needed
-		},
-		UpdateExpression: aws.String("SET Name = :name, Email = :email, DOB = :dob"),
+		TableName:                 aws.String(tableName),
+		Key:                       map[string]*dynamodb.AttributeValue{"UserID": {S: aws.String(userID)}},
+		ExpressionAttributeNames:  expressionAttributeNames,
+		ExpressionAttributeValues: expressionAttributeValues,
+		UpdateExpression:          aws.String(updateExpression),
 	}
 
 	_, err := dynamoDB.UpdateItem(updateItemInput)

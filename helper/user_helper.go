@@ -1,27 +1,29 @@
 package helper
 
 import (
+	"github.com/go-playground/validator/v10"
+	"github.com/vineela-devarashetty/user-microservice/model"
 	"regexp"
 	"strconv"
 	"time"
 )
 
-// isValidName checks if a user name is valid based on certain rules.
-func IsValidName(name string) bool {
-	// Define the allowed character set (alphanumeric, underscore, hyphen)
-	validChars := "^[a-zA-Z0-9_-]+$"
+// validateName checks if a name is valid.
+func validateName(fl validator.FieldLevel) bool {
+	name := fl.Field().String()
 
-	// Define minimum and maximum user name lengths
+	// Define a regular expression pattern to allow spaces and check for special characters
+	pattern := "^[A-Za-z0-9\\s]+$"
+	match, _ := regexp.MatchString(pattern, name)
+
+	// Define minimum and maximum name lengths
 	minLength := 4
-	maxLength := 20
+	maxLength := 80
 
 	// Check length requirement
 	if len(name) < minLength || len(name) > maxLength {
 		return false
 	}
-
-	// Check character set using regular expression
-	match, _ := regexp.MatchString(validChars, name)
 
 	return match
 }
@@ -83,4 +85,11 @@ func atoi(s string) int {
 		return 0 // Return 0 for invalid or non-numeric strings
 	}
 	return i
+}
+
+func ValidateUser(user model.User) error {
+	validate := validator.New()
+	// Register the custom name validation function
+	validate.RegisterValidation("username", validateName)
+	return validate.Struct(user)
 }

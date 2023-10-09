@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/google/uuid"
 	"github.com/vineela-devarashetty/user-microservice/helper"
 	"github.com/vineela-devarashetty/user-microservice/model"
 	"github.com/vineela-devarashetty/user-microservice/service"
@@ -31,18 +32,6 @@ func main() {
 	dynamoDB = dynamodb.New(sess)
 	lambda.Start(handler)
 }
-
-// func init() {
-// 	// Initialize AWS session and DynamoDB client
-// 	sess, err := session.NewSession(&aws.Config{
-// 		Region: aws.String("us-east-1"), // Change to your AWS region
-// 	})
-// 	if err != nil {
-// 		log.Fatal("Error creating AWS session:", err)
-// 	}
-
-// 	dynamoDB = dynamodb.New(sess)
-// }
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	switch request.HTTPMethod {
@@ -67,8 +56,9 @@ func createUser(ctx context.Context, request events.APIGatewayProxyRequest) (eve
 	}
 
 	// Validate user data
-	if !helper.IsValidName(user.Name) {
-		return clientError(http.StatusBadRequest, "Name should be 80 characters or less")
+
+	if err := helper.ValidateUser(user); err != nil {
+		return clientError(http.StatusBadRequest, "Required fields are missing")
 	}
 
 	if !helper.IsValidEmail(user.Email) {
@@ -78,6 +68,10 @@ func createUser(ctx context.Context, request events.APIGatewayProxyRequest) (eve
 	if !helper.IsValidDOB(user.DOB) {
 		return clientError(http.StatusBadRequest, "Invalid date of birth format (YYYY-MM-DD)")
 	}
+
+	userID := uuid.New().String()
+
+	user.UserID = userID
 
 	err = service.CreateUser(ctx, &user, dynamoDB)
 	if err != nil {
@@ -108,6 +102,20 @@ func updateUser(ctx context.Context, request events.APIGatewayProxyRequest) (eve
 	err := json.Unmarshal([]byte(request.Body), &updatedUser)
 	if err != nil {
 		return clientError(http.StatusBadRequest, "Invalid request payload")
+	}
+
+	// Validate user data
+
+	if err := helper.ValidateUser(updatedUser); err != nil {
+		return clientError(http.StatusBadRequest, "Required fields are missing")
+	}
+
+	if !helper.IsValidEmail(updatedUser.Email) {
+		return clientError(http.StatusBadRequest, "Invalid email format")
+	}
+
+	if !helper.IsValidDOB(updatedUser.DOB) {
+		return clientError(http.StatusBadRequest, "Invalid date of birth format (YYYY-MM-DD)")
 	}
 
 	err = service.UpdateUser(ctx, userID, &updatedUser, dynamoDB)
