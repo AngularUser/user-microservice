@@ -41,7 +41,7 @@ To deploy this microservice, we use the AWS Serverless framework. Follow these s
 
 1. Clone this repository:
    ```shell
-   git clone <repository_url>
+   git clone https://github.com/vineela-devarashetty/user-microservice
 2. Build the project using the script ./start.sh
 3. Install Serverless framework (if not already installed):
     npm install -g serverless
