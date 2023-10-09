@@ -8,7 +8,6 @@ This is a CRUD (Create, Read, Update, Delete) microservice for managing user rec
 - [Error Handling](#error-handling)
 - [Deployment](#deployment)
 - [Testing](#testing)
-- [Getting Started](#getting-started)
 
 ## API Endpoints
 
