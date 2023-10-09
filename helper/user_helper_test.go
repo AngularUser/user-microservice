@@ -1,30 +1,10 @@
 package helper
 
 import (
+	"github.com/go-playground/validator/v10"
+	"github.com/vineela-devarashetty/user-microservice/model"
 	"testing"
 )
-
-func TestIsValidName(t *testing.T) {
-	// Test cases for IsValidName function
-	tests := []struct {
-		input    string
-		expected bool
-	}{
-		{"valid_name", true},                     // Valid username
-		{"invalid name", false},                  // Contains a space (invalid character)
-		{"low", false},                           // Too short
-		{"very_long_username_1234567890", false}, // Too long
-	}
-
-	for _, test := range tests {
-		t.Run(test.input, func(t *testing.T) {
-			result := IsValidName(test.input)
-			if result != test.expected {
-				t.Errorf("Expected %v, but got %v for input %s", test.expected, result, test.input)
-			}
-		})
-	}
-}
 
 func TestIsValidEmail(t *testing.T) {
 	// Test cases for IsValidEmail function
@@ -71,5 +51,37 @@ func TestIsValidDOB(t *testing.T) {
 				t.Errorf("Expected %v, but got %v for input %s", test.expected, result, test.input)
 			}
 		})
+	}
+}
+
+func TestValidateUser_ValidUser(t *testing.T) {
+	user := model.User{
+		UserID: "123",
+		Name:   "John Doe",
+		Email:  "john@example.com",
+		DOB:    "2000-01-01",
+	}
+
+	if err := ValidateUser(user); err != nil {
+		t.Errorf("Expected no validation errors, but got %v", err)
+	}
+}
+
+func TestValidateUser_InvalidUser(t *testing.T) {
+	user := model.User{
+		UserID: "",
+		Name:   "John",          // Empty name
+		Email:  "invalid-email", // Invalid email format
+		DOB:    "",
+	}
+
+	if err := ValidateUser(user); err == nil {
+		t.Error("Expected validation errors, but got none")
+	} else {
+		_, ok := err.(validator.ValidationErrors)
+		if !ok {
+			t.Error("Expected a ValidationErrors type error")
+		}
+
 	}
 }
